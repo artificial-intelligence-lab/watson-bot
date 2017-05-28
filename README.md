@@ -1,2 +1,1 @@
-# watson-bot
-Watson Conversation ChatBot
+# Watson Conversation Bot
