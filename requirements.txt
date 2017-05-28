@@ -1,0 +1,6 @@
+Flask
+gunicorn
+requests
+watson_developer_cloud
+python-dotenv
+virtualenv
