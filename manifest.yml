@@ -2,7 +2,7 @@
 applications:
 - services:
   - conversation
-- name: conversationMaster-main
+- name: fb-bot
   memory: 128MB
   disk_quota: 256MB
   random-route: true

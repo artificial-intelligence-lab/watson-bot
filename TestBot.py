@@ -8,7 +8,6 @@ from template import Template
 from attachment import Button, Element, ReceiptElement, List
 from watson_developer_cloud import ConversationV1
 
-
 context = {}
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
@@ -22,10 +21,25 @@ conversation = ConversationV1(
 
 )
 
-# Get port from environment variable or choose 9099 as local default
-port = int(os.getenv("PORT", 9099))
-# FB messenger credentials
-FB_APP_TOKEN = os.environ.get("FB_APP_TOKEN")
+response_obj  = conversation.message(
+                                        workspace_id = workspace_id,
+                                        message_input = {'text': 'hello'}, 
+                                        context= context )
+
+context = response_obj['context']
+
+message_type = response_obj['output']['type']
+template_buttons=[]
+if message_type != 'text':
+    quick_reply_options = response_obj['output']['quick_reply_options']
+title = response_obj["output"]["text"][0]
+for option_name in quick_reply_options:
+    template_buttons.append(Button(type='postback',title=option_name,payload=option_name))
+        
+button_template = Template( Template.button_type, title=title, buttons = template_buttons )
+
+msg = Message('template', button_template)
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -86,6 +100,7 @@ def prepare_reply(response_obj):
         
     return msg.to_json()
 
+
 @app.route('/', methods=['POST'])
 def handle_incoming_messages():
     data = request.json
@@ -103,15 +118,10 @@ def handle_incoming_messages():
     context = response_obj['context']
     #check if IBM Watson Conversion has detected any intent
     #check if intent confidence is quite high
-    if response_obj['intents'] and response_obj['intents'][0]['confidence']>0.3:
+    if response_obj['intents'] and response_obj['intents'][0]['confidence']>0.6:
         #some of the intents might have been configured but the dialog has not a complete flow, meaning no text is replied
         if response_obj["output"]["text"]:
             msg = prepare_reply(response_obj)
             reply(sender,msg)
 
     return 'ok'
-    
-
-if __name__ == '__main__':
-    # Run the app, listening on all IPs with our chosen port number
-    app.run(host='0.0.0.0', port=port)
